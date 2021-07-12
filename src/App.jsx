@@ -9,18 +9,18 @@ function App() {
   return (
     <BrowserRouter>
       <Switch>
-        <Route exact path="/room/:id">
+        <Route path="/room/:id/:name">
           <Room />
         </Route>
-        <Route path="/room">
-          Room ID Required
-        </Route>
-        <Route exact path="/">
+        <Route path="/:name">
           <Home />
         </Route>
         <Route path="/">
-          Not Found
+          <Home />
         </Route>
+        {/* <Route path="/">
+          Not Found
+        </Route> */}
       </Switch>
     </BrowserRouter>
   );
