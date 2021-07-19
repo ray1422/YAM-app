@@ -1,19 +1,23 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { WSContext } from 'context';
 import action from './../../../utils/action';
+import { StreamingContext } from 'context';
 
 export default function Client({ id, isWaiter, offer, onDisconnected }) {
     const { ws, event, name } = useContext(WSContext);
+
+    const { userStream: stream, screenStream, screen } = useContext(StreamingContext)
 
     const connection = useRef(null)
     const sender = useRef(null)
 
     const description_status = useRef(0) //0:never 1:setRemote 
-
+    const video = useRef(null)
     const [RTCState, setRTCState] = useState(false)
     const [RTCMessage, setRTCMessage] = useState(null)
     const [remoteName, setRemoteName] = useState("")
 
+    const videoSender = useRef(null)
 
 
     useEffect(() => {
@@ -28,16 +32,7 @@ export default function Client({ id, isWaiter, offer, onDisconnected }) {
                 break
             case "forward_candidate":
                 if (data.remote_id === id) {
-                    // const interval = setInterval(() => {
-                    //     if (description_status === 1) {
-                    //         clearInterval(interval)
-                    //     }
-                    // }, 100)
-
                     connection.current.addIceCandidate(JSON.parse(data.data))
-
-
-
                     console.log("addIceCandidate", data.data)
                 }
                 break
@@ -90,7 +85,7 @@ export default function Client({ id, isWaiter, offer, onDisconnected }) {
         description_status.current = 1
     }
 
-    async function connect() {
+    async function connect(withScreen) {
         try {
             const configuration = {
                 'iceServers': [{
@@ -103,6 +98,10 @@ export default function Client({ id, isWaiter, offer, onDisconnected }) {
             }
             const conn = new RTCPeerConnection(configuration);
             connection.current = conn
+
+
+            videoSender.current = conn.addTrack(stream.getVideoTracks()[0], stream)
+            var camAudioTrack = conn.addTrack(stream.getAudioTracks()[0], stream)
 
             conn.onconnectionstatechange = function (event) {
                 setRTCState(conn.connectionState)
@@ -124,7 +123,16 @@ export default function Client({ id, isWaiter, offer, onDisconnected }) {
             conn.addEventListener('icecandidate', async event => {
                 if (event.candidate) {
                     ws.send(action("provide_candidate", { remote_id: id, data: JSON.stringify(event.candidate) }))
+                }
+            });
 
+            conn.addEventListener('track', (e) => {
+                if (video.current.srcObject !== e.streams[0]) {
+                    video.current.srcObject = e.streams[0];
+                    console.log('pc2 received remote stream');
+                }
+                if (e.streams[1]) {
+                    alert("Screen")
                 }
             });
 
@@ -150,14 +158,18 @@ export default function Client({ id, isWaiter, offer, onDisconnected }) {
                 };
             });
 
-            if (!isWaiter) {
-                console.log("createOffer");
-                const offer = await conn.createOffer();
-                console.log("setLocalDescription");
-                await conn.setLocalDescription(offer)
-                console.log("provid offer", offer);
-                ws.send(action("provide_offer", { remote_id: id, data: JSON.stringify(offer) }))
-            } else {
+            conn.onnegotiationneeded = async () => {
+                if (!isWaiter) {
+                    console.log("createOffer");
+                    const offer = await conn.createOffer();
+                    console.log("setLocalDescription");
+                    await conn.setLocalDescription(offer)
+                    console.log("provid offer", offer);
+                    ws.send(action("provide_offer", { remote_id: id, data: JSON.stringify(offer) }))
+                }
+            }
+
+            if (isWaiter) {
                 answerConnection(JSON.parse(offer))
             }
 
@@ -168,14 +180,33 @@ export default function Client({ id, isWaiter, offer, onDisconnected }) {
     }
 
     useEffect(() => {
-        connect()
-    }, [])
+        if (stream) {
+            if (RTCState) {
+                return
+            }
+            connect(false)
+        }
+    }, [stream])
 
-    return <div style={{ width: 200, height: 150, border: `${isWaiter ? "blue" : "red"} 2px solid` }}>
+    useEffect(() => {
+        if (screenStream && screen.enabled && RTCState) {
+            videoSender.current.replaceTrack(screenStream.getVideoTracks()[0], screenStream)
+        }
+    }, [screenStream, screen.enabled])
+
+
+
+
+    return <div style={{ display: "inline-block", border: `${isWaiter ? "blue" : "red"} 2px solid` }}>
+        <video width="320" height="240" ref={video} autoPlay playsInline >
+            Your browser does not support the video tag.
+        </video>
+        <br />
         {id}
         <br />
         {remoteName}
         <br />
         {RTCState}
+        <br />
     </div>;
 }

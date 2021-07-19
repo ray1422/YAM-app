@@ -4,3 +4,21 @@ export const WSContext = React.createContext({
     event: null,
     name: ""
 });
+
+export const StreamingContext = React.createContext({
+    audio: {
+        enabled: true,
+        setEnabled: () => { }
+    },
+    video: {
+        enabled: true,
+        setEnabled: () => { }
+    },
+    screen: {
+        enabled: true,
+        setEnabled: () => { }
+    },
+    userStream: null,
+    screenStream: null,
+    dummy: null
+});
