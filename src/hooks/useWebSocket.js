@@ -15,7 +15,7 @@ export default function useWebSocket(url) {
 
         ws.onclose = () => {
             setConnected(false)
-            console.log("connected");
+            console.log("disconnected");
         }
 
         ws.onmessage = (e) => {
