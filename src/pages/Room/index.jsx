@@ -64,6 +64,9 @@ export default function Room() {
     const [requireFileValue, setRequireFileValue] = useState(null);
     const messagesListRef = useRef([])
     const providingFiles = useRef([])
+    const receiveFiles = useRef({})
+
+
 
     useEffect(() => {
         if (!isConnected) return
@@ -104,8 +107,6 @@ export default function Room() {
         setClients(clients.filter((c) => c.id !== id))
     }
 
-
-
     return <MessageContext.Provider value={{
         messagesList,
         setMessagesList,
@@ -116,7 +117,8 @@ export default function Room() {
         requireFile: {
             value: requireFileValue,
             setValue: setRequireFileValue
-        }
+        },
+        receiveFiles,
     }}>
         <WSContext.Provider value={{ ws: webSocket, event, name, id }}>
             <HeaderBar name={name} isChatOpen={isChatOpen} setChatOpen={setChatOpen} />

@@ -12,7 +12,8 @@ const useStyle = createUseStyles({
         display: "inline-block",
         backgroundColor: "#111111",
         margin: 10,
-    }, infoBar: {
+    },
+    infoBar: {
         position: "absolute",
         display: "flex",
         justifyContent: "space-between",
@@ -84,7 +85,7 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
     const [videoEnable, setVideoEnable] = useState(true)
 
     const { source: { videos, audios }, sourceSwitch: { userAudioStream, userVideoStream } } = useContext(StreamingContext)
-    const { setMessagesList, sendMessage, messagesListRef: messagesRef, providingFiles, requireFile } = useContext(MessageContext)
+    const { setMessagesList, sendMessage, messagesListRef: messagesRef, providingFiles, requireFile, receiveFiles } = useContext(MessageContext)
 
     const tracks = useRef([])
 
@@ -149,7 +150,6 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
                 })
                 break
             case "start_sharing":
-                console.log("start_sharing", data.remote_id, id);
                 if (data.remote_id === id) {
                     setSharingScreen(true)
                 }
@@ -167,20 +167,46 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
                 const file = providingFiles.current.find((f) => f.id === data.file.id)
                 if (!file) alert("File is not exist!")
                 const reader = new FileReader();
-                reader.addEventListener('load', () => {
-                    let array = Array.prototype.slice.call(new Uint8Array(reader.result));
-                    sender.current.send(act("replay_file", { name: file.file.name, buffer: array }))
+                let offset = 0
+                reader.addEventListener('load', e => {
+
+                    let array = Array.prototype.slice.call(new Uint8Array(e.target.result));
+
+                    sender.current.send(act("reply_file", { id: file.id, buffer: array, offset }))
+
+                    array = null
+
+                    console.log('offset/size ', offset, '/', file.file.size);
+                    offset += e.target.result.byteLength;
+                    //sendProgress.value = offset;
+                    if (offset < file.file.size) {
+                        setTimeout(() => readSlice(offset), 20)
+                    } else {
+                        sender.current.send(act("finish_file", { id: file.id, name: file.file.name }))
+                    }
                 });
-                reader.readAsArrayBuffer(file.file)
+                const chunkSize = 16000;
+                const readSlice = o => {
+                    const slice = file.file.slice(offset, o + chunkSize);
+                    reader.readAsArrayBuffer(slice);
+                };
+                readSlice(0);
+
                 break
-            case "replay_file":
-                let arrayBuffer = new Uint8Array(data.buffer).buffer;
+            case "reply_file":
+                receiveFiles.current[data.id].buffer = receiveFiles.current[data.id].buffer.concat(data.buffer)
+                break
+            case "finish_file":
+                let arrayBuffer = new Uint8Array(receiveFiles.current[data.id].buffer).buffer;
                 var blob = new Blob([arrayBuffer]);
                 var link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
                 var fileName = data.name;
                 link.download = fileName;
                 link.click();
+                delete receiveFiles.current[data.id]
+                requireFile.setValue(null)
+                alert("finished")
                 break
             default:
         }
@@ -236,8 +262,14 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
             connection.current = conn
             var str = blackSilence()
             screenSender.current = conn.addTrack(str.getVideoTracks()[0], str)
+
+            if (screen.enabled) {
+                screenSender.current.replaceTrack(screenStream.getVideoTracks()[0], screenStream)
+            }
+
             videoSender.current = conn.addTrack(stream.getVideoTracks()[0], stream)
             audioSender.current = conn.addTrack(stream.getAudioTracks()[0], stream)
+
             const video_id = stream.id
             const screenVideo_id = str.id
 
@@ -288,11 +320,13 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
                 receiveChannel.binaryType = 'arraybuffer';
                 receiveChannel.onmessage = (e) => {
                     setRTCMessage(e.data)
-                    console.log(e.data);
+                    //console.log(e.data);
                 };
 
                 receiveChannel.onopen = async function () {
                     sender.current.send(act("provide_tracks", { video: video_id, screenVideo: screenVideo_id }))
+                    if (screen.enabled)
+                        sender.current.send(act("start_sharing", { remote_id: selfId }))
                 };
                 receiveChannel.onclose = () => {
                 };
@@ -351,10 +385,7 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
                 sender.current.send(act("require_file", { file: requireFile.value }))
             requireFile.setValue(null)
         }
-
     }, [requireFile.value])
-
-
 
     return <>
         <div className={classes.video}>
@@ -373,6 +404,7 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
                     </span>
                 </span>
                 <span className={classes.name}>{remoteName}</span>
+
             </div>
 
         </div>
@@ -383,7 +415,9 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
                 <video width="600" height="337.5" ref={screenVideoRef} autoPlay playsInline muted>
                     Your browser does not support the video tag.
                 </video>
-                <span className={classes.name}>{remoteName}</span>
+                <div className={classes.infoBar}>
+                    <span className={classes.name}>{remoteName} 的螢幕分享</span>
+                </div>
             </div>
         </div>}
     </>;

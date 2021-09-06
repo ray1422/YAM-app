@@ -45,7 +45,9 @@ export const MessageContext = React.createContext({
     requireFile: {
         value: null,
         setValue: () => { }
-    }
+    },
+    receiveFiles: {},
+    setReceiveFiles: {},
 });
 
 

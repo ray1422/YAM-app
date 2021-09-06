@@ -40,3 +40,4 @@ export default function Modal({ children, isShow, setShow }) {
     </div>,
         document.getElementById('root'))
 }
+

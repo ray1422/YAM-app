@@ -12,7 +12,8 @@ const useStyle = createUseStyles({
         transition: "0.3s",
         display: "flex",
         alignItems: "center",
-        overflow: "hidden"
+        overflow: "hidden",
+        flexShrink: 0
     }),
     window: {
         display: "flex",
@@ -47,11 +48,14 @@ const useStyle = createUseStyles({
 
 export default function Chat({ isOpen }) {
 
-    const { messagesList, setMessagesList, setSendMessage, messagesListRef, providingFiles, requireFile } = useContext(MessageContext)
+    const { messagesList, setMessagesList, setSendMessage, messagesListRef, providingFiles, requireFile, receiveFiles } = useContext(MessageContext)
     const { name: myName, id: myId } = useContext(WSContext)
 
     const [text, setText] = useState("")
     const [uploadFile, setUploadFile] = useState("")
+
+
+
 
     const classes = useStyle({ isOpen })
 
@@ -91,6 +95,8 @@ export default function Chat({ isOpen }) {
             });
             reader.readAsArrayBuffer(file.file);
         } else {
+            console.log("receiveFiles", receiveFiles.current);
+            receiveFiles.current[mes.id] = { buffer: [], file: mes.data.file }
             requireFile.setValue(mes)
         }
     }
@@ -106,7 +112,7 @@ export default function Chat({ isOpen }) {
         <div className={classes.window}>
             <div className={classes.title}>Chat</div>
             <div className={classes.view}>{
-                messagesList.map((m, i) => m.type === "text" ? <Text key={m.id} mes={m} /> : <File key={m.id} mes={m} tryGetFile={tryGetFile} />)
+                messagesList.map((m, i) => m.type === "text" ? <Text key={m.id} mes={m} /> : <File key={m.id} mes={m} tryGetFile={tryGetFile} receiveFiles={receiveFiles} mine={m.author.id === myId} />)
             }</div>
             <div className={classes.inputArea}>
                 <input value={text} onKeyDown={(e) => { e.key === "Enter" && sendText() }} onChange={(e) => setText(e.target.value)} />
@@ -127,10 +133,25 @@ function Text({ mes }) {
     return <div className={classes.message}><div className={classes.name}>{mes.author.name}</div>:{mes.data?.text}</div>
 }
 
-function File({ mes, tryGetFile }) {
+function File({ mes, tryGetFile, receiveFiles, mine }) {
+    const [offset, setOffset] = useState(-1)
+    useEffect(() => {
+        if (mine) return
+        const id = setInterval(() => {
+            if (receiveFiles.current[mes.id]) {
+                setOffset(receiveFiles.current[mes.id].buffer.length)
+            } else {
+                setOffset(-1)
+            }
+        }, 200)
+        return () => clearInterval(id)
+    }, [])
+
     const classes = useStyle({})
     return <div className={classes.message}>
         <div className={classes.name}>{mes.author.name}</div>
         {mes.data?.file.name}/{mes.data?.file.size / 1000}kb
-        <span className="material-icons" onClick={() => tryGetFile(mes)}>download</span></div>
+        {offset !== -1 ? Math.round(offset / mes.data?.file.size * 100) + "%" : <span className="material-icons" onClick={() => tryGetFile(mes)}>download</span>}
+
+    </div>
 }

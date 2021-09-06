@@ -19,7 +19,10 @@ const ustStyle = createUseStyles({
     })
 })
 export default function Toggle({ value, onChange, Active, Inactive, size = 80 }) {
+
     const classes = ustStyle({ size })
+
+
     return (
         <div className={classes.root} onClick={() => onChange(!value)}>
             <span className={["material-icons", classes.icon].join(" ")}>

@@ -59,12 +59,11 @@ function App() {
       });
       console.log(audios[userAudioStream], videos[userVideoStream]);
       setUserStream(stream)
-
     }
     if (audios && videos)
       reCapture()
 
-  }, [userVideoStream, userAudioStream])
+  }, [userVideoStream, userAudioStream, audios, videos])
 
   useEffect(() => {
     if (!userStream) return
@@ -72,22 +71,33 @@ function App() {
     var camAudioTrack = userStream.getAudioTracks()[0];
     camVideoTrack.enabled = videoEnabled
     camAudioTrack.enabled = audioEnabled
-  }, [videoEnabled, audioEnabled])
+  }, [videoEnabled, audioEnabled, userStream])
 
   useEffect(() => {
     if (screenStream || !screenEnabled) return
     async function getScreen() {
-      let captureStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          cursor: "always"
-        }, audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 }
-      });
+      try {
+        let captureStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            cursor: "always"
+          }, audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 }
+        });
 
-      setScreenStream(captureStream)
-      captureStream.getVideoTracks()[0].onended = function () {
+        console.log(captureStream);
+
+        setScreenStream(captureStream)
+
+
+        captureStream.getVideoTracks()[0].onended = function () {
+          setScreenEnabled(false)
+          setScreenStream(null)
+        };
+      } catch {
         setScreenEnabled(false)
-        setScreenStream(null)
-      };
+      }
+
+
+
     }
     getScreen()
   }, [screenEnabled])

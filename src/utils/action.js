@@ -1,3 +1,5 @@
-export default function action(action, data) {
-    return (JSON.stringify({ action, data, }))
+import makeid from "./makeid";
+
+export default function act(action, data) {
+    return (JSON.stringify({ action, data, id: makeid() }))
 }
