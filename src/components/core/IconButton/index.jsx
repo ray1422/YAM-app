@@ -1,11 +1,11 @@
 import { createUseStyles } from "react-jss"
 import icon from "assets/buttonShape.svg"
-const ustStyle = createUseStyles({
+const useStyle = createUseStyles({
     root: {
-        width: 80,
-        height: 80,
+        width: "3em",
+        height: "3em",
         background: `url(${icon})`,
-        backgroundSize: "cover",
+        backgroundSize: "contain",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -14,12 +14,12 @@ const ustStyle = createUseStyles({
     icon: {
         position: "absolute",
         color: "white",
-        fontSize: 40,
+        fontSize: "1.5em",
         userSelect: "none"
     }
 })
 export default function IconButton({ icon, onClick }) {
-    const classes = ustStyle()
+    const classes = useStyle()
     return (
         <div className={classes.root} onClick={onClick}>
             <span className={["material-icons", classes.icon].join(" ")}>

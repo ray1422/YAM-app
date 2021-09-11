@@ -16,7 +16,7 @@ const ustStyle = createUseStyles({
     backdrop: {
         width: "100vw",
         height: "100vh",
-        backgroundColor: "#222",
+        backgroundColor: "#000",
         opacity: 0.5
     },
     modal: {

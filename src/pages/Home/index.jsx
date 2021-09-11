@@ -4,53 +4,147 @@ import { createUseStyles } from 'react-jss';
 import { Link, useHistory, useParams } from 'react-router-dom';
 import Toggle from 'components/core/Toggle';
 import IconButton from 'components/core/IconButton';
+import titleImgDesktop from 'assets/title_icon-desktop.svg'
 import Modal from 'components/core/Modal';
 import SettingModal from 'components/section/SettingModal';
-
+const midScreenMediaQuery = "@media (max-width: 920px)"
 const useStyle = createUseStyles({
     root: {
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        height: "100vh",
-        width: "100vw",
-        backgroundColor: "#222222"
+        justifyContent: "space-around",
+        minHeight: "100vh",
+        width: "100%",
+
     },
     centerVertical: {
         display: "flex",
         justifyContent: "center",
+        margin: "0 auto",
+        maxWidth: "1900px",
+        width: "100%",
+        padding: "0 1rem",
+        [`${midScreenMediaQuery}`]: {
+            flexWrap: 'wrap',
+            alignItems: "center"
+        }
     },
     preview: {
-        display: "flex",
         position: "relative",
-        width: "112vh",
-        height: "63vh",
-        backgroundColor: "#444444",
+        width: "60%",
+        maxWidth: "106vh",
+        // maxHeight: "60vh",
         justifyContent: "center",
-        marginRight: 80
-    },
-    video: {
-        height: "100%",
+        marginRight: "4vw",
+        background: "rgba(15, 15, 15, .7)",
+        boxShadow: "0 0 5px 1px #00f400a6",
+        borderRadius: "3px",
+        overflow: "hidden",
+        [`${midScreenMediaQuery}`]: {
+            width: "79%",
+            height: "40vh",
+            maxHeight: "50vw",
+            marginRight: "unset",
+            marginTop: "1rem"
+        },
+        "& > video": {
+            position: "absolute",
+            height: "100%",
+            width: "100%",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            objectFit: "contain",
+            transform: "scaleX(-1)"
+        }
     },
     controlBox: {
         width: "100%",
         display: "flex",
-        justifyContent: "space-around",
-        bottom: 40,
-        padding: [0, 100],
+        justifyContent: "center",
+        bottom: 20,
         position: "absolute",
+        "& > div": {
+            "margin": "0 .2em"
+        },
+        [`${midScreenMediaQuery}`]: {
+            bottom: 5,
+        },
     },
     sideBoard: {
         display: "flex",
         flexDirection: "column",
-        width: "25vw"
+        width: "25%",
+        maxWidth: "25vw",
+        [`${midScreenMediaQuery}`]: {
+            width: "80%",
+            maxWidth: "unset"
+        }
     },
     board: {
-        width: "25vw"
+        width: "100%"
+    },
+    icon: {
+        width: "90%",
+        maxWidth: "400px",
+        maxHeight: "20vh",
+        margin: "0 auto 1.2em",
+        "&>": {
+            "height": "100%"
+        },
+        [`${midScreenMediaQuery}`]: {
+            opacity: 0,
+            height: "1rem"
+        }
+    },
+    iconVertical: {
+        display: "None",
+        [`${midScreenMediaQuery}`]: {
+            display: "block",
+            width: "100%",
+
+            overflow: "hidden",
+            "& > img": {
+                display: "block",
+                objectFit: "contain",
+                width: "80%",
+                maxHeight: "10rem",
+                margin: "0 auto 1rem"
+            },
+        }
+
     },
     enterArea: {
-        backgroundColor: "white",
-        flexGrow: 1
+        background: "rgba(80, 80, 80, .7)",
+        flexGrow: 1,
+        padding: "1rem",
+        fontSize: "1.6em",
+        color: "white",
+        borderRadius: "8px",
+        "& > .input-line": {
+            margin: ["10px", 0, "10px", 0],
+            display: "flex",
+            alignItems: "center",
+            height: "2.5rem"
+        },
+        "& input": {
+            paddingLeft: ".3em",
+            borderRadius: "5px",
+            fontSize: "1.5rem",
+            height: "2.5rem",
+            border: "none",
+            background: "rgba(20, 20, 20, .9)",
+            color: "white",
+            padding: "0",
+            margin: 0,
+            width: "100%",
+            flex: 1,
+        },
+        "& input[type='button']": {
+            cursor: "pointer"
+        }
+
     },
     input: {
         display: "block"
@@ -100,6 +194,9 @@ export default function Home() {
 
     return <div className={classes.root}>
         <div className={classes.centerVertical}>
+            <div className={classes.iconVertical}>
+                <img src={titleImgDesktop} alt="Yet Another Meet" width="100%" />
+            </div>
             <div className={classes.preview}>
                 <video className={classes.video} ref={videoRef} autoPlay playsInline muted>
                     Your browser does not support the video tag.
@@ -111,12 +208,24 @@ export default function Home() {
                 </div>
             </div>
             <div className={classes.sideBoard}>
-                <div style={{ backgroundColor: "red", width: "100%", height: 100 }} />
+                <div className={classes.icon}>
+                    <img src={titleImgDesktop} alt="Yet Another Meet" width="100%" />
+                </div>
                 <div className={classes.enterArea}>
-                    Hello, <input value={inputName} onChange={(e) => setInputName(e.target.value)} />.
-                    <input className={classes.input} placeholder="ID" value={id} onChange={(e) => setID(e.target.value)} />
-                    <input type="password" className={classes.input} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                    <div className={classes.button} onClick={enter}>Enter</div>
+                    <div className="input-line">
+                        <span style={{ fontSize: "90%" }}>Hello:&nbsp;</span>
+                        <input value={inputName} onChange={(e) => setInputName(e.target.value)} />
+                    </div>
+                    <div className="input-line">
+                        <input className={classes.input} placeholder="Room ID" value={id} onChange={(e) => setID(e.target.value)} />
+                    </div>
+                    <div className="input-line">
+                        <input type="password" className={classes.input} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </div>
+                    <div className="input-line">
+                        <input type="button" className={classes.button} onClick={enter} value="Join" />
+                    </div>
+
 
                 </div>
             </div>

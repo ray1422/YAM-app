@@ -5,68 +5,75 @@ import { StreamingContext } from 'context';
 import { createUseStyles } from "react-jss";
 import Toggle from "components/core/Toggle";
 import icon from "assets/buttonShape.svg"
+import { useStyle } from "styles/room";
+// const useStyle = createUseStyles({
+//     client: () =>
+//         [
+//             {
+//                 width: "30%",
+//                 backgroundColor: "#111111",
+//                 margin: 10,
+//             }, {
+//                 width: "48%",
+//                 display: "inline-block",
+//                 backgroundColor: "#111111",
+//                 margin: 10,
+//             },
+//         ][~~chatOpened]
+//     ,
+//     infoBar: {
+//         position: "absolute",
+//         display: "flex",
+//         justifyContent: "space-between",
+//         left: 0,
+//         bottom: 0,
+//         width: "100%",
+//         padding: 10
+//     },
+//     name: {
+//         backgroundColor: "#333333",
+//         color: "#fff",
+//         padding: [5, 10]
+//     },
+//     buttons: {
+//         display: "flex",
+//     },
+//     button: {
+//         width: 40,
+//         height: 40,
+//         background: `url(${icon})`,
+//         backgroundSize: "cover",
+//         display: "flex",
+//         justifyContent: "center",
+//         alignItems: "center",
+//         cursor: "pointer",
+//         position: "relative",
+//         "& .volume": {
+//             position: "absolute",
+//             bottom: "calc(-100% - 20px)",
+//             backgroundColor: "#444",
+//             padding: 5,
+//             opacity: 0,
+//             transition: "0.3s",
+//             pointerEvents: "none",
+//         },
+//         "&:hover": {
+//             "& .volume": {
+//                 opacity: 1,
+//                 pointerEvents: "auto",
+//             },
+//         }
+//     },
+//     icon: {
+//         position: "absolute",
+//         color: "white",
+//         fontSize: 20,
+//         userSelect: "none"
+//     }
+// })
+export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisconnected, nBlk }) {
 
-const useStyle = createUseStyles({
-    video: {
-        position: "relative",
-        display: "inline-block",
-        backgroundColor: "#111111",
-        margin: 10,
-    },
-    infoBar: {
-        position: "absolute",
-        display: "flex",
-        justifyContent: "space-between",
-        left: 0,
-        bottom: 0,
-        width: "100%",
-        padding: 10
-    },
-    name: {
-        backgroundColor: "#333333",
-        color: "#fff",
-        padding: [5, 10]
-    },
-    buttons: {
-        display: "flex",
-    },
-    button: {
-        width: 40,
-        height: 40,
-        background: `url(${icon})`,
-        backgroundSize: "cover",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        cursor: "pointer",
-        position: "relative",
-        "& .volume": {
-            position: "absolute",
-            bottom: "calc(-100% - 20px)",
-            backgroundColor: "#444",
-            padding: 5,
-            opacity: 0,
-            transition: "0.3s",
-            pointerEvents: "none",
-        },
-        "&:hover": {
-            "& .volume": {
-                opacity: 1,
-                pointerEvents: "auto",
-            },
-        }
-    },
-    icon: {
-        position: "absolute",
-        color: "white",
-        fontSize: 20,
-        userSelect: "none"
-    }
-})
-
-export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) {
-
-    const classes = useStyle()
+    const classes = useStyle({ chatOpened, nBlk })
     const { ws, event, name } = useContext(WSContext);
 
     const { userStream: stream, screenStream, screen } = useContext(StreamingContext)
@@ -388,11 +395,11 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
     }, [requireFile.value])
 
     return <>
-        <div className={classes.video}>
-            <video width="600" height="337.5" ref={videoRef} autoPlay playsInline disabled={!videoEnable} style={{ opacity: videoEnable ? 1 : 0 }}>
+        <div className={classes.client}>
+            <video ref={videoRef} autoPlay playsInline disabled={!videoEnable} style={{ opacity: videoEnable ? 1 : 0 }}>
                 Your browser does not support the video tag.
             </video>
-            <div className={classes.video}></div>
+            {/* <div className={classes.client}></div> */}
             <div className={classes.infoBar}>
                 <span className={classes.buttons}>
                     <Toggle size={40} value={videoEnable} Active={"videocam"} Inactive={"videocam_off"} onChange={(v) => setVideoEnable(v)} />
@@ -410,14 +417,12 @@ export default function Client({ selfId, id, isWaiter, offer, onDisconnected }) 
         </div>
 
 
-        {<div style={{ display: sharingScreen ? "inline-block" : "none" }}>
-            <div className={classes.video}>
-                <video width="600" height="337.5" ref={screenVideoRef} autoPlay playsInline muted>
-                    Your browser does not support the video tag.
-                </video>
-                <div className={classes.infoBar}>
-                    <span className={classes.name}>{remoteName} 的螢幕分享</span>
-                </div>
+        {<div style={{ display: sharingScreen ? "unset" : "none" }} className={classes.client}>
+            <video width="600" height="337.5" ref={screenVideoRef} autoPlay playsInline muted>
+                Your browser does not support the video tag.
+            </video>
+            <div className={classes.infoBar}>
+                <span className={classes.name}>{remoteName} 的螢幕分享</span>
             </div>
         </div>}
     </>;

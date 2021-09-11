@@ -12,10 +12,10 @@ export default function SettingModal({ children, isShow, setShow }) {
     const { source: { videos, audios }, sourceSwitch: { userAudioStream, userVideoStream, setUserVideoStream, setUserAudioStream } } = useContext(StreamingContext)
     return <Modal isShow={isShow} setShow={setShow}>
         {videos && <select onChange={(e) => setUserVideoStream(e.target.value)} value={userVideoStream}>
-            {videos.map((v, i) => <option value={i}>{v.label}</option>)}
+            {videos.map((v, i) => <option key={i} value={i}>{v.label}</option>)}
         </select>}
         {audios && <select onChange={(e) => setUserAudioStream(e.target.value)} value={userAudioStream}>
-            {audios.map((a, i) => <option value={i}>{a.label}</option>)}
+            {audios.map((a, i) => <option key={i} value={i}>{a.label}</option>)}
         </select>}
     </Modal>
 }

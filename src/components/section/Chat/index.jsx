@@ -8,8 +8,8 @@ import makeid from "utils/makeid";
 const useStyle = createUseStyles({
     root: ({ isOpen }) => ({
         backgroundColor: "gray",
-        width: isOpen ? 400 : 0,
-        transition: "0.3s",
+        width: isOpen ? "20%" : 0,
+        transition: "width ease 300ms",
         display: "flex",
         alignItems: "center",
         overflow: "hidden",

@@ -1,11 +1,13 @@
 import { createUseStyles } from "react-jss"
 import icon from "assets/buttonShape.svg"
-const ustStyle = createUseStyles({
+const useStyle = createUseStyles({
     root: ({ size }) => ({
         width: size,
         height: size,
         background: `url(${icon})`,
-        backgroundSize: "cover",
+        backgroundSize: "contain",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -18,9 +20,9 @@ const ustStyle = createUseStyles({
         userSelect: "none"
     })
 })
-export default function Toggle({ value, onChange, Active, Inactive, size = 80 }) {
+export default function Toggle({value, onChange, Active, Inactive, size="3em"}) {
 
-    const classes = ustStyle({ size })
+    const classes = useStyle({ size })
 
 
     return (
