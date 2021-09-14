@@ -13,11 +13,11 @@ import { useStyle } from 'styles/room'
 
 export default function Room() {
     const [chatOpened, setChatOpened] = useState(false);
-
+    const [screenList, setScreenList] = useState({})
     const { id: roomId, name } = useParams()
-    //const { webSocket, isConnected, event } = useWebSocket(`ws://192.168.137.1:8080/api/room/${roomId}/ws/`)    
-    const { webSocket, isConnected, event } = useWebSocket(`ws://localhost:8080/api/room/${roomId}/ws/`)
-    
+    const { webSocket, isConnected, event } = useWebSocket(`${process.env.REACT_APP_USE_HTTPS ? "wss" : "ws"}://${process.env.REACT_APP_API_URL}/api/room/${roomId}/ws/`)
+    // const { webSocket, isConnected, event } = useWebSocket(`wss://${process.env.REACT_APP_API_URL}/api/room/${roomId}/ws/`)
+
 
     const videoRef = useRef(null)
     const ScreenRef = useRef(null)
@@ -34,12 +34,30 @@ export default function Room() {
     const providingFiles = useRef([])
     const receiveFiles = useRef({})
 
-
+    const [nBlk, setNBlk] = useState(1 + (~~(screen.enabled)) + (clients ? clients.length : 0))
 
     useEffect(() => {
         if (!isConnected) return
-        webSocket.send(action("register_client", { token }))
-    }, [isConnected])
+        if (!token) {
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: "TODO" })
+
+            };
+            fetch(`/api/room/${id}/`, requestOptions)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.token) {
+                        webSocket.send(action("register_client", { token: data.token }))
+                    } else {
+                        window.location = window.location.protocol + "//" + window.location.host + `/${roomId}/${name}/`
+                    }
+                });
+        } else {
+            webSocket.send(action("register_client", { token }))
+        }
+    }, [isConnected, token, webSocket])
 
     useEffect(() => {
         if (stream) {
@@ -52,6 +70,11 @@ export default function Room() {
             ScreenRef.current.srcObject = screenStream;
         }
     }, [screenStream])
+
+    useEffect(() => {
+        console.log(screenList)
+        setNBlk(1 + (~~(screen.enabled)) + (clients ? clients.length : 0) + Object.keys(screenList).length)
+    }, [clients, screen, chatOpened, screenList])
 
     useEffect(() => {
         if (!event) return
@@ -67,17 +90,27 @@ export default function Room() {
             case "forward_offer":
                 setClients([...clients, { id: data.remote_id, isWaiter: true, offer: data.data }])
                 break
+            case "client_event":
+                console.log(data)
+                switch (data.event) {
+                    case "leave":
+                        console.log("TODO!")
+                        break
+                    default:
+                        console.log("unknown event")
+                }
+                break
             default:
         }
     }, [event])
-    const nBlk = 1 + (~~(screen.enabled)) + (clients ? clients.length : 0)
+
     console.log(nBlk)
     const classes = useStyle({ chatOpened, nBlk })
 
     function handleDisconnected(id) {
         setClients(clients.filter((c) => c.id !== id))
     }
-    
+
     return <MessageContext.Provider value={{
         messagesList,
         setMessagesList,
@@ -121,7 +154,7 @@ export default function Room() {
                         </div>
                     }
                     {clients && clients.map((c) =>
-                        <Client className={classes.client} selfId={id} stream={stream} key={c.id} id={c.id} isWaiter={c.isWaiter} offer={c.offer} onDisconnected={handleDisconnected} nBlk={nBlk} />)}
+                        <Client className={classes.client} selfId={id} stream={stream} key={c.id} id={c.id} isWaiter={c.isWaiter} offer={c.offer} onDisconnected={handleDisconnected} nBlk={nBlk} chatOpened={chatOpened} screenList={screenList} setScreenList={setScreenList} />)}
                     {/* </FlipMove> */}
                 </div>
 

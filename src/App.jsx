@@ -82,7 +82,6 @@ function App() {
                         cursor: "always"
                     }, audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 }
                 });
-
                 console.log(captureStream);
 
                 setScreenStream(captureStream)
@@ -95,12 +94,9 @@ function App() {
             } catch {
                 setScreenEnabled(false)
             }
-
-
-
         }
         getScreen()
-    }, [screenEnabled])
+    }, [screenEnabled, screenStream])
 
     return (
         <GlobalContext.Provider value={{ isSettingShow, setSettingShow }}>
@@ -136,7 +132,10 @@ function App() {
                         <Route path="/room/:id/:name">
                             <Room />
                         </Route>
-                        <Route path="/:name">
+                        <Route path="/:id/:name">
+                            <Home />
+                        </Route>
+                        <Route path="/:id">
                             <Home />
                         </Route>
                         <Route path="/">

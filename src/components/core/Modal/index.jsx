@@ -1,5 +1,4 @@
 import { createUseStyles } from "react-jss"
-import icon from "assets/buttonShape.svg"
 import { createPortal } from "react-dom"
 const ustStyle = createUseStyles({
     root: ({ isShow }) => ({

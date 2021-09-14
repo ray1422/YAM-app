@@ -1,48 +1,58 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { MessageContext, WSContext } from 'context';
-import action from '../../../utils/action';
-import { StreamingContext } from 'context';
 import { createUseStyles } from "react-jss";
 import makeid from "utils/makeid";
 
 const useStyle = createUseStyles({
     root: ({ isOpen }) => ({
-        backgroundColor: "gray",
         width: isOpen ? "20%" : 0,
-        transition: "width ease 300ms",
+        transition: "all ease 300ms",
+        boxShadow: isOpen ? "rgb(0 244 0 / 65%) 0px 0px 5px 1px" : "rgb(0 244 0 / 0%) 0px 0px 5px 1px",
         display: "flex",
         alignItems: "center",
         overflow: "hidden",
-        flexShrink: 0
+        flexShrink: 0,
+        marginRight: "10px"
     }),
     window: {
         display: "flex",
         flexDirection: "column",
-        width: 400,
+        width: "100%",
         flexShrink: 0,
-        border: [5, "lightgreen", "solid"],
-        backgroundColor: "white"
+        backgroundColor: "#464646"
     },
     title: {
         fontSize: 20,
-        backgroundColor: "#444",
+        backgroundColor: "#222",
+        padding: ".3rem",
         color: "white"
     },
     view: {
         height: 400,
-        overflow: "auto",
+        overflowY: "auto",
+        overflowX: "hidden",
+        padding: [2, 5],
+        color: "white"
     },
     message: {
         margin: [10, 0],
         display: "flex",
         alignItems: "center",
+        wordBreak: "break-word"
     },
     name: {
         backgroundColor: "#222",
         color: "white",
         padding: [5, 10],
         display: "inline-block",
-        marginRight: 10
+        marginRight: 10,
+        wordBreak: "normal"
+    },
+    "@media (max-width: 520px)": {
+        root: ({isOpen}) => ({
+            width: isOpen ? "100%" : 0,
+            marginRight: "unset"
+        })
     }
 })
 
@@ -107,7 +117,7 @@ export default function Chat({ isOpen }) {
         setUploadFile(null)
     }, [uploadFile])
 
-
+    console.log(messagesList)
     return <div className={classes.root}>
         <div className={classes.window}>
             <div className={classes.title}>Chat</div>
@@ -130,7 +140,7 @@ export default function Chat({ isOpen }) {
 
 function Text({ mes }) {
     const classes = useStyle({})
-    return <div className={classes.message}><div className={classes.name}>{mes.author.name}</div>:{mes.data?.text}</div>
+    return <div className={classes.message}><div className={classes.name}>{mes.author.name}</div>{mes.data?.text}</div>
 }
 
 function File({ mes, tryGetFile, receiveFiles, mine }) {

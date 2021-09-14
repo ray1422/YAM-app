@@ -1,11 +1,10 @@
 import { GlobalContext, StreamingContext } from 'context';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import { Link, useHistory, useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import Toggle from 'components/core/Toggle';
 import IconButton from 'components/core/IconButton';
 import titleImgDesktop from 'assets/title_icon-desktop.svg'
-import Modal from 'components/core/Modal';
 import SettingModal from 'components/section/SettingModal';
 const midScreenMediaQuery = "@media (max-width: 920px)"
 const useStyle = createUseStyles({
@@ -156,12 +155,12 @@ const useStyle = createUseStyles({
 })
 
 export default function Home() {
-    const { name } = useParams()
+    const { id, name } = useParams()
 
     const classes = useStyle()
 
     const [inputName, setInputName] = useState(name);
-    const [id, setID] = useState("neo");
+    const [inputId, setID] = useState(id);
     const [password, setPassword] = useState("");
     const history = useHistory()
     const { audio, video, userStream: stream, setToken, source: { videos, audios } } = useContext(StreamingContext)
@@ -178,16 +177,17 @@ export default function Home() {
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: "TODO" })
+
         };
-        fetch(`/api/room/${id}`, requestOptions)
+        fetch(`/api/room/${inputId}/`, requestOptions)
             .then(response => response.json())
             .then(data => {
                 if (data.token) {
                     setToken(data.token)
-                    history.push(`/room/${id}/${inputName}`)
+                    history.push(`/room/${inputId}/${inputName}`)
                 }
-            }
-            );
+            });
     }
 
 
@@ -214,10 +214,10 @@ export default function Home() {
                 <div className={classes.enterArea}>
                     <div className="input-line">
                         <span style={{ fontSize: "90%" }}>Hello:&nbsp;</span>
-                        <input value={inputName} onChange={(e) => setInputName(e.target.value)} />
+                        <input required value={inputName} onChange={(e) => setInputName(e.target.value)} />
                     </div>
                     <div className="input-line">
-                        <input className={classes.input} placeholder="Room ID" value={id} onChange={(e) => setID(e.target.value)} />
+                        <input required className={classes.input} placeholder="Room ID" value={inputId} onChange={(e) => setID(e.target.value)} />
                     </div>
                     <div className="input-line">
                         <input type="password" className={classes.input} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />

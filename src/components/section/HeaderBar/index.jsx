@@ -1,9 +1,5 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { WSContext } from 'context';
-import action from '../../../utils/action';
-import { StreamingContext } from 'context';
 import { createUseStyles } from "react-jss";
-
+import logoHeader from 'assets/logo_title_header.svg'
 const useStyle = createUseStyles({
     root: {
         height: 80,
@@ -15,7 +11,17 @@ const useStyle = createUseStyles({
     },
     chatToggle: {
         border: [2, "solid", "gray"],
-        padding: [5, 10]
+        padding: [5, 10],
+        color: "white",
+        cursor: "pointer"
+    },
+    logo: {
+        width: "20rem",
+        maxWidth: "70vw",
+        "& img" : {
+            width: "100%"
+        },
+        marginRight: "1rem"
     }
 })
 
@@ -24,7 +30,7 @@ export default function HeaderBar({ name, isChatOpen, setChatOpen }) {
     const classes = useStyle()
 
     return <div className={classes.root}>
-        <div className={classes.logo}><a href={`/${name}`} >LOGO</a></div>
+        <div className={classes.logo}><a href={`/${name}`} ><img src={logoHeader} alt="Yet Another Meet" /></a></div>
         <span className={classes.chatToggle} onClick={() => setChatOpen(!isChatOpen)}> Chat</span>
     </div>
 }

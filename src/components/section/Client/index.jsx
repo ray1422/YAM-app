@@ -71,9 +71,9 @@ import { useStyle } from "styles/room";
 //         userSelect: "none"
 //     }
 // })
-export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisconnected, nBlk }) {
-
-    const classes = useStyle({ chatOpened, nBlk })
+export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisconnected, nBlk, setScreenList, screenList }) {
+    console.log(screenList)
+    let classes = useStyle({ chatOpened, nBlk })
     const { ws, event, name } = useContext(WSContext);
 
     const { userStream: stream, screenStream, screen } = useContext(StreamingContext)
@@ -368,12 +368,28 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
         if (screenStream && screen.enabled && RTCState) {
             screenSender.current.replaceTrack(screenStream.getVideoTracks()[0], screenStream)
             sender.current && sender.current.readyState === "open" && sender.current.send(act("start_sharing", { remote_id: selfId }))
-            // alert("start_sharing")
+            
+
         } else {
             sender.current && sender.current.readyState === "open" && sender.current.send(act("stop_sharing", { remote_id: selfId }))
         }
     }, [screenStream, screen.enabled])
-
+    const screenList2 = JSON.parse(JSON.stringify(screenList))
+    useEffect(() => {
+        if (sharingScreen) {
+            console.log("screen!!!!")
+            setScreenList(c => {
+                screenList2[selfId] = true
+                return screenList2
+            })
+            console.log(screenList2)
+        } else {
+            setScreenList(c => {
+                if (screenList2[selfId]) delete screenList2[selfId]
+                return screenList2
+            })
+        }
+    }, [sharingScreen, selfId, setScreenList])
 
     useEffect(() => {
         if (sender.current && sender.current.readyState === "open")
@@ -399,7 +415,6 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
             <video ref={videoRef} autoPlay playsInline disabled={!videoEnable} style={{ opacity: videoEnable ? 1 : 0 }}>
                 Your browser does not support the video tag.
             </video>
-            {/* <div className={classes.client}></div> */}
             <div className={classes.infoBar}>
                 <span className={classes.buttons}>
                     <Toggle size={40} value={videoEnable} Active={"videocam"} Inactive={"videocam_off"} onChange={(v) => setVideoEnable(v)} />
@@ -418,7 +433,7 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
 
 
         {<div style={{ display: sharingScreen ? "unset" : "none" }} className={classes.client}>
-            <video width="600" height="337.5" ref={screenVideoRef} autoPlay playsInline muted>
+            <video ref={screenVideoRef} autoPlay playsInline muted>
                 Your browser does not support the video tag.
             </video>
             <div className={classes.infoBar}>
