@@ -26,6 +26,7 @@ export const useStyle = createUseStyles(() => ({
         // overflow: "hidden",
         boxShadow: "0 0 5px 1px #00f400a6",
         background: "rgba(15, 15, 15, .7)",
+        cursor: "zoom-in",
         "& > video": {
             height: "100%",
             width: "100%",

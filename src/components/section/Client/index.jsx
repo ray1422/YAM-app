@@ -412,7 +412,9 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
 
     return <>
         <div className={classes.client}>
-            <video ref={videoRef} autoPlay playsInline disabled={!videoEnable} style={{ opacity: videoEnable ? 1 : 0 }}>
+            <video ref={videoRef} autoPlay playsInline disabled={!videoEnable} style={{ opacity: videoEnable ? 1 : 0 }} onClick={()=>{
+                videoRef.current && videoRef.current.requestFullscreen()
+            }}>
                 Your browser does not support the video tag.
             </video>
             <div className={classes.infoBar}>
@@ -433,7 +435,9 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
 
 
         {<div style={{ display: sharingScreen ? "unset" : "none" }} className={classes.client}>
-            <video ref={screenVideoRef} autoPlay playsInline muted>
+            <video ref={screenVideoRef} autoPlay playsInline muted onClick={()=>{
+                screenVideoRef.current && screenVideoRef.current.requestFullscreen()
+            }}>
                 Your browser does not support the video tag.
             </video>
             <div className={classes.infoBar}>
