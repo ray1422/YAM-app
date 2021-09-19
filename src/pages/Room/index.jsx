@@ -15,7 +15,7 @@ export default function Room() {
     const [chatOpened, setChatOpened] = useState(false);
     const [screenList, setScreenList] = useState({})
     const { id: roomId, name } = useParams()
-    const { webSocket, isConnected, event } = useWebSocket(`${process.env.REACT_APP_USE_HTTPS ? "wss" : "ws"}://${process.env.REACT_APP_API_URL}/api/room/${roomId}/ws/`)
+    const { webSocket, isConnected, event } = useWebSocket(`${process.env.REACT_APP_USE_HTTPS === "true" ? "wss" : "ws"}://${process.env.REACT_APP_API_URL}/api/room/${roomId}/ws/`)
     // const { webSocket, isConnected, event } = useWebSocket(`wss://${process.env.REACT_APP_API_URL}/api/room/${roomId}/ws/`)
 
 
@@ -88,13 +88,14 @@ export default function Room() {
                 setId(data.self_client_id)
                 break
             case "forward_offer":
-                setClients([...clients, { id: data.remote_id, isWaiter: true, offer: data.data }])
+                setClients(clients => [...clients, { id: data.remote_id, isWaiter: true, offer: data.data }])
                 break
             case "client_event":
                 console.log(data)
                 switch (data.event) {
                     case "leave":
-                        console.log("TODO!")
+                        const remoteId = data.remote_id
+                        setClients(clients => clients.filter(c => c.id !== remoteId))
                         break
                     default:
                         console.log("unknown event")
@@ -108,7 +109,7 @@ export default function Room() {
     const classes = useStyle({ chatOpened, nBlk })
 
     function handleDisconnected(id) {
-        setClients(clients.filter((c) => c.id !== id))
+        setClients(clients => clients.filter((c) => c.id !== id))
     }
 
     return <MessageContext.Provider value={{
