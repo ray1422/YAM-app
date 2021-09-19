@@ -80,7 +80,7 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
 
     const connection = useRef(null)
     const sender = useRef(null)
-
+    
     const description_status = useRef(0) //0:never 1:setRemote 
     const videoRef = useRef(null)
     const screenVideoRef = useRef(null)
@@ -286,6 +286,9 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
                     case "connected":
                         break;
                     case "disconnected":
+                        console.log("peer disconnected")
+                        console.log(conn)
+                        break
                     case "failed":
                         //onDisconnected(id)
                         // One or more transports has terminated unexpectedly or in an error
