@@ -6,6 +6,9 @@ import { createUseStyles } from "react-jss";
 import Toggle from "components/core/Toggle";
 import icon from "assets/buttonShape.svg"
 import { useStyle } from "styles/room";
+import { useHistory } from "react-router";
+import errorSound from 'assets/sounds/error.mp3'
+import dingJoin from 'assets/sounds/ding_join.mp3'
 // const useStyle = createUseStyles({
 //     client: () =>
 //         [
@@ -72,6 +75,13 @@ import { useStyle } from "styles/room";
 //     }
 // })
 export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisconnected, nBlk, setScreenList, screenList }) {
+    const [debugClose, setDebugClose] = useState(false)
+    useEffect(() => {
+        if (debugClose) {
+            console.log("close!!!!!!")
+            connection.current && connection.current.close()
+        }
+    }, [debugClose])
     console.log(screenList)
     let classes = useStyle({ chatOpened, nBlk })
     const { ws, event, name } = useContext(WSContext);
@@ -80,7 +90,17 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
 
     const connection = useRef(null)
     const sender = useRef(null)
-    
+    const alive = useRef(true)
+
+    useEffect(() => {
+        return () => {
+            alive.current = false
+            if (connection.current) {
+                console.log("asdf")
+                connection.current.close()
+            }
+        }
+    }, [])
     const description_status = useRef(0) //0:never 1:setRemote 
     const videoRef = useRef(null)
     const screenVideoRef = useRef(null)
@@ -128,9 +148,16 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
                 break
             case "forward_candidate":
                 if (data.remote_id === id) {
-                    connection.current.addIceCandidate(JSON.parse(data.data))
-                    console.log("addIceCandidate", data.data)
+                    const u = setInterval(() => {
+                        if (!connection.current) {
+                            return
+                        }
+                        connection.current.addIceCandidate(JSON.parse(data.data))
+                        console.log("addIceCandidate", data.data)
+                        clearInterval(u)
+                    }, 100);
                 }
+
                 break
             default:
         }
@@ -284,9 +311,25 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
                 setRTCState(conn.connectionState)
                 switch (conn.connectionState) {
                     case "connected":
+                        const audio = new Audio(dingJoin)
+                        audio.play()
                         break;
+                    case "closed":
                     case "disconnected":
-                        console.log("peer disconnected")
+                        if (!alive.current) {
+                            console.log("component has been unmounted, so don't reconnect.")
+                            break
+                        } else {
+                            const audio = new Audio(errorSound)
+                            audio.play()
+                            setTimeout(() => {
+                                alert("you are disconnected! pls re join the room!")
+                                window.history.back()
+                            }, 3000);
+
+                        }
+
+                        // if self still in peers list, than reconnect.
                         console.log(conn)
                         break
                     case "failed":
@@ -371,7 +414,6 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
         if (screenStream && screen.enabled && RTCState) {
             screenSender.current.replaceTrack(screenStream.getVideoTracks()[0], screenStream)
             sender.current && sender.current.readyState === "open" && sender.current.send(act("start_sharing", { remote_id: selfId }))
-            
 
         } else {
             sender.current && sender.current.readyState === "open" && sender.current.send(act("stop_sharing", { remote_id: selfId }))
@@ -415,7 +457,7 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
 
     return <>
         <div className={classes.client}>
-            <video ref={videoRef} autoPlay playsInline disabled={!videoEnable} style={{ opacity: videoEnable ? 1 : 0 }} onClick={()=>{
+            <video ref={videoRef} autoPlay playsInline disabled={!videoEnable} style={{ opacity: videoEnable ? 1 : 0 }} onClick={() => {
                 videoRef.current && videoRef.current.requestFullscreen()
             }}>
                 Your browser does not support the video tag.
@@ -425,7 +467,7 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
                     <Toggle size={40} value={videoEnable} Active={"videocam"} Inactive={"videocam_off"} onChange={(v) => setVideoEnable(v)} />
                     <span className={classes.button} >
                         <span className={["material-icons", classes.icon].join(" ")}>
-                            {volume == 0 ? "volume_off" : "volume_up"}
+                            {volume === 0 ? "volume_off" : "volume_up"}
                             <div className={"volume"}><input type="range" value={volume} max={100} onChange={(e) => setVolume(e.target.value)} /></div>
                         </span>
                     </span>
@@ -438,7 +480,7 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
 
 
         {<div style={{ display: sharingScreen ? "unset" : "none" }} className={classes.client}>
-            <video ref={screenVideoRef} autoPlay playsInline muted onClick={()=>{
+            <video ref={screenVideoRef} autoPlay playsInline muted onClick={() => {
                 screenVideoRef.current && screenVideoRef.current.requestFullscreen()
             }}>
                 Your browser does not support the video tag.
