@@ -126,7 +126,7 @@ export default function Room() {
         receiveFiles,
     }}>
         <WSContext.Provider value={{ ws: webSocket, event, name, id }}>
-            <HeaderBar name={name} isChatOpen={chatOpened} setChatOpen={setChatOpened} />
+            <HeaderBar roomId={roomId} name={name} isChatOpen={chatOpened} setChatOpen={setChatOpened} />
 
             <br />
             {/* {isConnected ? "Connected" : "Disconnected"} */}

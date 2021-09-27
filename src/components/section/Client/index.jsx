@@ -314,7 +314,6 @@ export default function Client({ selfId, id, isWaiter, offer, chatOpened, onDisc
                         const audio = new Audio(dingJoin)
                         audio.play()
                         break;
-                    case "closed":
                     case "disconnected":
                         if (!alive.current) {
                             console.log("component has been unmounted, so don't reconnect.")

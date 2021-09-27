@@ -23,17 +23,18 @@ const ustStyle = createUseStyles({
         left: "50%",
         top: "50%",
         transform: "translate(-50%,-50%)",
-        width: 500,
-        minHeight: 200,
-        maxHeight: "60vh",
+        width: "95vw",
+        height: "95vh",
+        maxHeight: 600,
+        maxWidth: 800,
         backgroundColor: "white",
     }
 })
-export default function Modal({ children, isShow, setShow }) {
+export default function Modal({ children, isShow, setShow, ...props }) {
     const classes = ustStyle({ isShow })
-    return createPortal(<div className={classes.root} >
+    return createPortal(<div className={classes.root}>
         <div className={classes.backdrop} onClick={() => setShow(false)} />
-        <div className={classes.modal} >
+        <div className={classes.modal} {...props} >
             {children}
         </div>
     </div>,
